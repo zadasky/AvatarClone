@@ -1,6 +1,6 @@
 return {
     TOOL_NAME = "Phone",
-    PASSCODE = "2006",
+    PASSCODE = "2007",
     CLONE_BATCH_SIZE = 5,
     CLONE_DELAY = 6,
     REMOTE_PATH = "Remotes.Command.CommandEvent",
@@ -15,7 +15,7 @@ return {
     LogoLocalPath = "PhoneIDViewer_Logo.png",
 
     DiscordURL = "https://discord.gg/yourdiscord",
-    WhatsAppURL = "https://wa.me/6281234567890",
+    WhatsAppURL = "https://wa.me/6283845441996",
     TelegramURL = "https://t.me/yourusername",
 
     DiscordIconURL = "https://files.catbox.moe/lgxgw4.jpg",
