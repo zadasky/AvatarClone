@@ -3,23 +3,33 @@
 -- Dark Elegant UI, Persistent Toggle State, Saved Avatars, 10 New Features
 -- ================================================ --
 
-local Services       = _G.Services
-local LocalPlayer    = _G.LocalPlayer
-local Firebase       = _G.Firebase
+local Services       = _G.Services or {
+    UserInputService = game:GetService("UserInputService"),
+    Workspace = game:GetService("Workspace"),
+    Players = game:GetService("Players"),
+}
+local LocalPlayer    = _G.LocalPlayer or game:GetService("Players").LocalPlayer
+local Firebase       = _G.Firebase or {}
 local Config         = _G.Config or {}
-local Helpers        = _G.Helpers or {}
+local Helpers        = _G.Helpers or {
+    corner = function(parent, radius)
+        local c = Instance.new("UICorner", parent)
+        c.CornerRadius = UDim.new(0, radius)
+    end,
+    stroke = function(parent, color, thickness, transparency)
+        local s = Instance.new("UIStroke", parent)
+        s.Color = color
+        s.Thickness = thickness or 1
+        s.Transparency = transparency or 0
+    end
+}
 local appContent     = _G.appContent
 
-local UIS            = Services.UserInputService
-local Workspace      = Services.Workspace
-local TweenService   = game:GetService("TweenService")
-
--- ==================== PERSISTENT STATE (di _G, supaya TIDAK reset saat phone dibuka-tutup) ====================
 _G.PremiumState = _G.PremiumState or {
     selectedTargetId = nil,
     selectedTargetName = "Pilih Player",
     tpOnTapActive = false,
-    trollStates = {}, -- trollStates[targetId][actionKey] = true/false
+    trollStates = {},
     lastCommandTime = 0,
 }
 local State = _G.PremiumState
