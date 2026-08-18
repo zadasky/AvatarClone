@@ -1,35 +1,30 @@
--- ================================================ --
--- PREMIUM APP - Mega Upgrade v2 (NO KEY / BYPASS)
+-- ================================================
+-- PREMIUM APP - Mega Upgrade v2
 -- Dark Elegant UI, Persistent Toggle State, Saved Avatars, 10 New Features
--- ================================================ --
+-- ================================================
 
-local Services       = _G.Services or {
-    UserInputService = game:GetService("UserInputService"),
-    Workspace = game:GetService("Workspace"),
-    Players = game:GetService("Players"),
-}
-local LocalPlayer    = _G.LocalPlayer or game:GetService("Players").LocalPlayer
-local Firebase       = _G.Firebase or {}
+local Services       = _G.Services
+local LocalPlayer    = _G.LocalPlayer
+local Firebase       = _G.Firebase
 local Config         = _G.Config or {}
-local Helpers        = _G.Helpers or {
-    corner = function(parent, radius)
-        local c = Instance.new("UICorner", parent)
-        c.CornerRadius = UDim.new(0, radius)
-    end,
-    stroke = function(parent, color, thickness, transparency)
-        local s = Instance.new("UIStroke", parent)
-        s.Color = color
-        s.Thickness = thickness or 1
-        s.Transparency = transparency or 0
-    end
-}
+local Helpers        = _G.Helpers or {}
 local appContent     = _G.appContent
 
+local UIS            = Services.UserInputService
+local Workspace      = Services.Workspace
+local TweenService   = game:GetService("TweenService")
+
+-- ==================== PERSISTENT STATE (di _G, supaya TIDAK reset saat phone dibuka-tutup) ====================
+-- PENTING: ini fix untuk bug toggle balik OFF. Sebelumnya trollStates adalah
+-- local variable di dalam file yang di-reload tiap kali Premium.lua di-Load()
+-- ulang oleh Loader saat app dibuka lagi. Sekarang disimpan di _G supaya
+-- bertahan selama sesi game berjalan, terlepas dari berapa kali openPremiumApp
+-- dipanggil ulang.
 _G.PremiumState = _G.PremiumState or {
     selectedTargetId = nil,
     selectedTargetName = "Pilih Player",
     tpOnTapActive = false,
-    trollStates = {},
+    trollStates = {}, -- trollStates[targetId][actionKey] = true/false
     lastCommandTime = 0,
 }
 local State = _G.PremiumState
@@ -59,10 +54,13 @@ local P = {
     border      = Color3.fromRGB(45, 45, 58),
 }
 
--- ==================== ACCESS VALIDATION (BYPASSED) ====================
+-- ==================== ACCESS VALIDATION ====================
 local function hasAccess()
-    -- Selalu mengembalikan true (bebas key)
-    return true
+    if LocalPlayer.UserId == (Config.DEVELOPER_USER_ID or 10164114772) then return true end
+    if Firebase and Firebase.IsPermanentUser then
+        return Firebase.IsPermanentUser(LocalPlayer.UserId)
+    end
+    return false
 end
 _G.hasPremiumAccess = hasAccess
 
@@ -75,6 +73,22 @@ local function applyGradient(inst, c1, c2, rotation)
     })
     g.Rotation = rotation or 45
     return g
+end
+
+local function softShadow(inst)
+    local shadow = Instance.new("ImageLabel")
+    shadow.Name = "Shadow"
+    shadow.BackgroundTransparency = 1
+    shadow.Image = "rbxassetid://1316045217"
+    shadow.ImageColor3 = Color3.new(0,0,0)
+    shadow.ImageTransparency = 0.7
+    shadow.ScaleType = Enum.ScaleType.Slice
+    shadow.SliceCenter = Rect.new(10,10,118,118)
+    shadow.Size = UDim2.new(1, 16, 1, 16)
+    shadow.Position = UDim2.new(0, -8, 0, -6)
+    shadow.ZIndex = inst.ZIndex - 1
+    shadow.Parent = inst.Parent
+    return shadow
 end
 
 -- ==================== FIREBASE SENDER HELPER ====================
@@ -157,7 +171,12 @@ end
 
 -- ==================== MAIN APP UI ====================
 function _G.openPremiumApp()
-    -- Validasi sudah di-bypass, langsung buka menu utama
+    if not hasAccess() then
+        _G.showDynamicNotification("Akses Ditolak! Membutuhkan Key Permanen.", P.red)
+        if _G.goHome then _G.goHome() end
+        return
+    end
+
     for _, child in ipairs(appContent:GetChildren()) do
         if child:IsA("GuiObject") then child:Destroy() end
     end
@@ -260,7 +279,7 @@ function _G.openPremiumApp()
         return frame
     end
 
-    -- ==================== CARD HELPER ====================
+    -- ==================== CARD HELPER (dipakai berulang di banyak tab) ====================
     local function addCard(parent, title, desc, btnText, btnColor, callback)
         local card = Instance.new("Frame", parent)
         card.Size = UDim2.new(0.95, 0, 0, 78)
@@ -450,7 +469,7 @@ function _G.openPremiumApp()
         sendCommand("force_remote", { remotePath = Config.REMOTE_PATH or "Remotes.Command.CommandEvent", cmd = "re" })
     end)
 
-    -- Screen Message
+    -- ===== FITUR BARU 1: Screen Message =====
     local msgInputCard = Instance.new("Frame", chatFrame)
     msgInputCard.Size = UDim2.new(0.95, 0, 0, 50)
     msgInputCard.BackgroundColor3 = P.bgCard2
@@ -489,13 +508,15 @@ function _G.openPremiumApp()
         end
     end)
 
+    -- ===== FITUR BARU 2: Kick =====
     addCard(chatFrame, "Kick Target", "Keluarkan target dari server saat ini.", "Kick", P.red, function()
         sendCommand("kick", { reason = "Dikeluarkan oleh Admin." })
     end)
 
-    -- ==================== TAB 4: AVATAR ====================
+    -- ==================== TAB 4: AVATAR (fitur ganti avatar tersimpan) ====================
     local avatarFrame = createTab("Avatar", "👤")
 
+    -- --- Simpan avatar target saat ini ---
     local saveAvatarCard = Instance.new("Frame", avatarFrame)
     saveAvatarCard.Size = UDim2.new(0.95, 0, 0, 96)
     saveAvatarCard.BackgroundColor3 = P.bgCard2
@@ -682,11 +703,12 @@ function _G.openPremiumApp()
 
     loadSavedAvatars()
 
+    -- ===== FITUR BARU 3: Strip Avatar =====
     addCard(avatarFrame, "Strip Avatar", "Copot semua aksesoris & pakaian target (jadi avatar default).", "Strip", P.red, function()
         sendCommand("strip_avatar", {})
     end)
 
-    -- ==================== TAB 5: TROLL ====================
+    -- ==================== TAB 5: TROLL (dengan state persist) ====================
     local trollFrame = createTab("Troll", "😈")
 
     local function getTrollState(actionKey)
@@ -763,6 +785,8 @@ function _G.openPremiumApp()
     addTrollToggle(trollFrame, "Spin", "Memutar badan target seperti gasing.", "spin", "unspin", Color3.fromRGB(211, 84, 0))
     addTrollToggle(trollFrame, "Slow Walk", "Membuat kecepatan jalan target sangat lambat.", "slow", "unslow", Color3.fromRGB(52, 73, 94))
     addTrollToggle(trollFrame, "High Jump", "Memberikan efek lompatan super tinggi.", "highjump", "unhighjump", Color3.fromRGB(26, 188, 156))
+
+    -- ===== 6 TOGGLE BARU dari 10 fitur =====
     addTrollToggle(trollFrame, "Rainbow Body", "Warna tubuh target berubah-ubah seperti pelangi.", "rainbow", "unrainbow", Color3.fromRGB(255, 100, 200))
     addTrollToggle(trollFrame, "Giant Size", "Membesarkan ukuran karakter target 3x.", "giant", "ungiant", Color3.fromRGB(90, 130, 255))
     addTrollToggle(trollFrame, "Tiny Size", "Mengecilkan ukuran karakter target.", "tiny", "untiny", Color3.fromRGB(255, 180, 60))
@@ -770,6 +794,7 @@ function _G.openPremiumApp()
     addTrollToggle(trollFrame, "Low Gravity", "Mengurangi gravitasi server (semua orang melayang).", "gravity_low", "gravity_normal", Color3.fromRGB(80, 200, 255))
     addTrollToggle(trollFrame, "Mute Sound", "Membisukan semua suara di layar target.", "deafen", "undeafen", Color3.fromRGB(160, 90, 200))
 
+    -- ===== INSTANT TROLL ACTIONS =====
     local instantLbl = Instance.new("TextLabel", trollFrame)
     instantLbl.Size = UDim2.new(0.95, 0, 0, 26)
     instantLbl.BackgroundTransparency = 1
@@ -808,10 +833,11 @@ function _G.openPremiumApp()
     addInstantBtn("Fling", "fling", Color3.fromRGB(155, 89, 182), true)
     addInstantBtn("Noclip", "noclip", Color3.fromRGB(149, 165, 166), true)
     addInstantBtn("Remove Limbs", "nolimbs", Color3.fromRGB(192, 57, 43), true)
+    -- 2 fitur instant baru
     addInstantBtn("Earthquake", "earthquake", Color3.fromRGB(180, 140, 40), true)
     addInstantBtn("Ragdoll Bounce", "ragdoll_bounce", Color3.fromRGB(230, 90, 180), false)
 
     switchTab("Target")
 end
 
-print("[Premium] Mega Upgrade v2 (No Key Bypass) Loaded Successfully!")
+print("[Premium] Mega Upgrade v2 loaded — persistent toggle, saved avatars, 10 new features!")
