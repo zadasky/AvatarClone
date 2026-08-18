@@ -682,7 +682,7 @@ end)
 -- ==================== PHONE STATE ====================
 _G.PhoneState = {
     selectedPlayer = nil,
-    isLocked       = true,
+    isLocked       = false,
     isCloning      = false,
     toolEquipped   = true,
 }
@@ -773,52 +773,4 @@ game:GetService("Players").LocalPlayer.OnTeleport:Connect(function()
 end)
 
 -- ==================== AUTO LOCK SYSTEM ====================
-task.spawn(function()
-    while true do
-        task.wait(5)
-        if not _G.PhoneState.isLocked and Firebase and Firebase.CheckSavedKey then
-            local ok, isValid = pcall(function()
-                return Firebase.CheckSavedKey(LocalPlayer.UserId)
-            end)
-            if ok and not isValid then
-                _G.PhoneState.isLocked = true
-                if Storage and Storage.clearSavedKey then
-                    pcall(Storage.clearSavedKey)
-                end
-                if home then 
-                    home.Visible = false 
-                end
-                if _G.showKeyEntry then
-                    _G.showKeyEntry()
-                end
-                if _G.showDynamicNotification then
-                    _G.showDynamicNotification("Key Dihapus / Expired!", Color3.fromRGB(255, 50, 50))
-                end
-            end
-        end
-    end
-end)
-
--- ==================== EXPORT ====================
-return {
-    gui              = gui,
-    phone            = phone,
-    sa               = sa,
-    sb               = sb,
-    clockLbl         = clockLbl,
-    di               = di,
-    dil              = dil,
-    diStroke         = diStroke,
-    home             = home,
-    homeWall         = homeWall,
-    sh               = sh,
-    dockArea         = dockArea,
-    dockBg           = dockBg,
-    dockGrid         = dockGrid,
-    appGrid          = appGrid,
-    gridLayout       = gridLayout,
-    keyScreen        = keyScreen,
-    isPortrait       = isPortrait,
-    getGridIconSize  = getGridIconSize,
-    PHONE_SIZE       = PHONE_SIZE,
-}
+-- Disabled: Phone tidak lagi menggunakan key lock.
