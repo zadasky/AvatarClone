@@ -5,7 +5,7 @@
 local HttpService = game:GetService("HttpService")
 local Firebase = {}
 
-local DB_URL = "https://gist.githubusercontent.com/zadasky/ff2e9ea36630a89d3330ce26db0d5d00/raw/2a7d846ea17d91bbc44a63a6fbbd26f5266fe8c2/keys.1"
+local DB_URL = "https://gist.githubusercontent.com/zadasky/ff2e9ea36630a89d3330ce26db0d5d00/raw/ec2345ed5da709d166e6546851c9aaea5572e20b/keys.1"
 local API_KEY = "AIzaSyCGYiMvdt8v4DP96dUny8xFDRD6w3T1c80"
 
 -- ==================== HTTP CORE ====================
