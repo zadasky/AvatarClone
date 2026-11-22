@@ -5,8 +5,8 @@
 local HttpService = game:GetService("HttpService")
 local Firebase = {}
 
-local DB_URL = "https://phone-id-viewer-default-rtdb.asia-southeast1.firebasedatabase.app"
-local API_KEY = "AIzaSyCGYiMvdt8v4DP96dUny8xFDRD6w3T1c80"
+local DB_URL = "https://avatarclone-fc9c4-default-rtdb.asia-southeast1.firebasedatabase.app"
+local API_KEY = "AIzaSyC5hyPKyWktwGisK8Zg_AFgkY6OgeUoo68"
 
 -- ==================== HTTP CORE ====================
 local function doRequest(method, url, body)
