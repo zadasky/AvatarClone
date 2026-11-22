@@ -2,7 +2,7 @@
 -- PHONE ID VIEWER - Modular Loader (FIXED)
 -- ================================================
 
-local BASE_URL = "https://raw.githubusercontent.com/AlfreadRorw/AvatarClone/main/"
+local BASE_URL = "https://raw.githubusercontent.com/zadasky/AvatarClone/main/"
 
 local function Load(path)
     local ok, result = pcall(function()
